@@ -1,0 +1,24 @@
+{
+	"ModelList" : 
+	[
+        {
+                "Modelname":"my_model1",
+                "FileName":"iris.zip",
+                "Type":"iris",
+                "InputStream" : "192.168.43.54",
+                "ModelPath":"iris/",
+                "DeployIp":"10.42.0.1",
+                "DeployPort":"8501",
+                "DeployPassword":"dhawal@A1",
+                "DeployUserName":"dhawal",
+                "StartTime":"NA",
+                "EndTime":"NA",
+                "Repeat":"YES",
+                "Count":2,
+                "Interval":1,
+                "Repeat_Period":3
+        }
+       
+		
+        ]
+}

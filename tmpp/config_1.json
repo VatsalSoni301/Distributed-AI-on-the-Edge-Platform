@@ -1,0 +1,22 @@
+ {
+	"ModelList" : 
+	[
+ 		{
+            "Modelname":"my_model",
+            "FileName":"hackathon_1.zip",
+            "Type":"mnist",
+            "InputStream" : "192.168.43.54",
+            "ModelPath":"hackathon_1/tmp/mnist",
+            "DeployIp":"10.42.0.238",
+            "DeployPort":"8501",
+            "DeployPassword":"dhawal@A1",
+            "DeployUserName":"dhawal",
+            "StartTime":"16:14",
+            "EndTime":"16:16",
+            "Repeat":"YES",
+            "Count":1,
+            "Interval":1,
+            "Repeat_Period":3
+        }
+    ]
+}
