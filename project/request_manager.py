@@ -1,4 +1,5 @@
 from flask import Flask,request, render_template
+from werkzeug import secure_filename
 import os,json
 from threading import Thread
 from time import sleep
@@ -26,6 +27,45 @@ logHandler = Logger('amqp://admin:admin@10.42.0.1//')
 my_logger.addHandler(logHandler)
 ################################################
 
+@app.route('/inference')
+def inference():
+    return render_template('inference.html')
+
+@app.route('/inferenceService', methods=['GET', 'POST'])
+def inferenceService():
+    model_name = request.form['model_name']
+    model_file = request.files['model_file']
+    action_file = request.files['action_file']
+    if model_file.filename == '':
+        return "Test Data file not found"
+
+    if action_file.filename == '':
+        return "Action file not found"
+
+    if model_file and allowed_file(model_file.filename):
+        filename = secure_filename(model_file.filename)
+        model_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    if action_file and allowed_file(action_file.filename):
+        act_filename = secure_filename(action_file.filename)
+        action_file.save(os.path.join(app.config['UPLOAD_FOLDER'], act_filename))
+
+    result = ""
+    with open(filename) as json_file:
+        listOfDict = json.load(json_file)
+        url = listOfDict['url']
+        del listOfDict['url']
+        response=requests.post(url,data=json.dumps(listOfDict))
+        data = response.json()
+        result = data
+        # result = str(numpy.argmax(data['predictions'][0]))
+
+
+    # Threading for notification service
+
+    return str(result)
+
+
 @app.route('/user/<username>')
 def user(username):
     return '<h2>Hello, %s </h2>' % username
@@ -38,62 +78,44 @@ def show_post(post_id):
 
 @app.route('/')
 def index():
-	my_logger.debug('RequestManager Service \t Running successfully')
-	return render_template('index.html')
+    return render_template('index.html')
 
-@app.route('/inference')
-def inference():
-    return render_template('inference.html')
-
-@app.route('/inferenceService', methods=['GET', 'POST'])
-def inferenceService():
-	model_name = request.form['model_name']
-	model_file = request.files['model_file']
-	action_file = request.files['action_file']
-	print(model_name)
-	if model_file.filename == '':
-		return "Test Data file not found"
-
-	if action_file.filename == '':
-		return "Action file not found"
-
-	if model_file and allowed_file(model_file.filename):
-		filename = secure_filename(model_file.filename)
-		model_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-		folder = filename
-
-	if action_file and allowed_file(action_file.filename):
-		filename = secure_filename(action_file.filename)
-		action_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-	# Fetch details from db 
-
-	deployIp = "10.42.0.157"
-	deployPort = 8501
-	url = "http://"+deployIp+":"+str(deployPort)+"/v1/models/"+model_name+":predict"
-
-	file1 = open(model_file.filename,"r+")  
-	inputData = file1.read()
-	inputData = list(inputData.split(", ")) 
-
-	formatData = []
-	for j in inputData:
-		formatData.append(float(j))
-
-	dict_data = {"signature_name":"predict_images","instances":[{"images":formatData}]}
-	data1 = json.dumps(dict_data)
-	response=requests.post(url,data=data1)
-	# print(response)
-	data = response.json()
-
-	# Threading for notification service
-
-	return str(numpy.argmax(data['predictions'][0]))
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def caller_function(sched) :
+    
+    URL='http://127.0.0.1:8890/deployService'
+    print("Caller function called")
+    r=requests.post(url=URL,data=json.dumps(sched))
+
+def deployHandler(jsonfile,folderName):
+    sched = {}
+
+    with open(jsonfile) as json_file:
+        listOfDict = json.load(json_file)
+        print(listOfDict)
+        print("list ",type(listOfDict))
+        # mountpoint="abc"
+        cmd = "unzip " + folderName
+        os.system(cmd)
+        # folderName = folderName[0:6]
+        for i in listOfDict['ModelList']:
+            print("single dict",i)
+            print(type(i))
+            # r = json.dumps(i)
+            # print("rrrrrrrrrrrrrrrrr",r)
+            # print("type r",type(r))
+            thread = Thread(target=caller_function,args=(i,))
+            thread.start()
+            #Fetch the model detail from config file and stor in db
+            
+
+
+        # url='http://127.0.0.1:8882/ScheduleService'
+        # response = requests.post(url,data=r)
 
 @app.route('/deploy', methods=['GET', 'POST'])
 def deploy():
@@ -129,11 +151,11 @@ def deploy():
             filename = secure_filename(config_file.filename)
             config_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
- 
+    
         # response = requests.get('http://127.0.0.1:8880/logged?log=abcd')
         print("Call Deploy")
-        url='http://127.0.0.1:8890/deployService?model=iris'#Fetch the model detail from config file and stor in db
-        response = requests.get(url)
+        deployHandler(filename,folder)
+        
         # print(response)
         print("Request Manager")
         # deployModelPhase(filename,folder)
@@ -142,5 +164,5 @@ def deploy():
     return "404"
 
 if __name__ == '__main__':
-    app.run(port=8879,debug=True,threaded=True)
+    app.run(host="0.0.0.0",port=9000,debug=True,threaded=True)
 

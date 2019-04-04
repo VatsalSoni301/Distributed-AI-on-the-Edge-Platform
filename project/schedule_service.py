@@ -27,9 +27,11 @@ def send(filename, modelname, port, ip, uname, passw, cmd, inp_str_ip):
     os.system(cmd3)
 
 
-def endFunction(endCmd, starttag, endtag, repeat):
+def endFunction(modelname, starttag, endtag, repeat, passw, ip, uname):
     print("End Model")
-    os.system(endCmd)
+    end_script = "stop_"+modelname+".sh"
+    endcmd = "nohup sshpass -p " + passw + " ssh " + ip + " -l " + uname + " bash "+ end_script + " &"
+    os.system(endcmd)
     if repeat == "NO":
         schedule.clear(starttag)
         schedule.clear(endtag)
@@ -47,21 +49,27 @@ def ScheduleService():
         fg = 1
         once()
 
-    data = request.get_json()
+    # data = request.get_json()
+    data =request.data
+    datadict=json.loads(data)
+    print(type(datadict))
+    print(datadict)
+    data = datadict
     print("---------------------------",type(data))
     print(data)
     starttag = "tag"+str(c)
     c = c + 1
     endtag = "tag"+str(c)
+    print("---------------------@@@@@@@@@@@@@@@@@@@@@")
     if data['end'] != "NA" and data['repeat'] == "YES":
         schedule.every().day.at(data['start']).do(send, filename=data['filename'], modelname=data['modelname'], port=data['port'], ip=data['ip'],
 													uname=data['uname'], passw=data['password'], cmd=data['start_command'], inp_str_ip=data['InputStreamIp']).tag(starttag)
-        schedule.every().day.at(data['end']).do(endFunction, endCmd=data['end_command'],
-												starttag=starttag, endtag=endtag, repeat=data['repeat']).tag(endtag)
+        schedule.every().day.at(data['end']).do(endFunction, modelname=data['modelname'],
+												starttag=starttag, endtag=endtag, repeat=data['repeat'], passw=data['password'], ip=data['ip'], uname=data['uname']).tag(endtag)
     elif data['end'] != "NA" and data['repeat'] == "NO":
 	    schedule.every().day.at(data['start']).do(send, filename=data['filename'], modelname=data['modelname'], port=data['port'], ip=data['ip'], uname=data['uname'], passw=data['password'], cmd=data['start_command'],inp_str_ip=data['InputStreamIp']).tag(starttag)
-	    schedule.every().day.at(data['end']).do(endFunction, endCmd=data['end_command'],
-											starttag=starttag, endtag=endtag, repeat=data['repeat']).tag(endtag)
+	    schedule.every().day.at(data['end']).do(endFunction, modelname=data['modelname'],
+											starttag=starttag, endtag=endtag, repeat=data['repeat'], passw=data['password'], ip=data['ip'], uname=data['uname']).tag(endtag)
     elif data['start'] == "NA" and data['end'] == "NA" and data['count'] == 1:
 	    now = datetime.datetime.now()
 	    start_hour = ""
@@ -93,7 +101,7 @@ def ScheduleService():
 	    print(start, end)
 	    schedule.every().day.at(start).do(send, filename=data['filename'], modelname=data['modelname'], port=data['port'], ip=data['ip'], uname=data['uname'], passw=data['password'], cmd=data['start_command'],inp_str_ip=data['InputStreamIp']).tag(starttag)
 	    schedule.every().day.at(end).do(endFunction,
-										endCmd=data['end_command'], starttag=starttag, endtag=endtag, repeat=data['repeat']).tag(endtag)
+										modelname=data['modelname'], starttag=starttag, endtag=endtag, repeat=data['repeat'], passw=data['password'], ip=data['ip'], uname=data['uname']).tag(endtag)
     else:
 	    for j in range(data['count']):
 		    if j == 0:
@@ -125,7 +133,7 @@ def ScheduleService():
 		    print(start, end)
 		    schedule.every().day.at(start).do(send, filename=data['filename'], modelname=data['modelname'], port=data['port'], ip=data['ip'], uname=data['uname'], passw=data['password'], cmd=data['start_command'],inp_str_ip=data['InputStreamIp']).tag(starttag)
 		    schedule.every().day.at(end).do(endFunction,
-											endCmd=data['end_command'], starttag=starttag, endtag=endtag, repeat=data['repeat']).tag(endtag)
+											modelname=data['modelname'], starttag=starttag, endtag=endtag, repeat=data['repeat'], passw=data['password'], ip=data['ip'], uname=data['uname']).tag(endtag)
 		    now = now + \
 				datetime.timedelta(minutes=int(data['repeat_period']))
     c = c + 1
@@ -144,4 +152,4 @@ def threaded_function():
 
 
 if __name__ == '__main__':
-    app.run(port=8882, debug=True)
+    app.run(host="0.0.0.0",port=8897, debug=True,threaded=True)
