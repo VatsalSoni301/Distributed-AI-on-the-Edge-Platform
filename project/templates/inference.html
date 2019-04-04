@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Home</title>
+  <title>Inference</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
@@ -41,8 +41,8 @@
     <div class="col-sm-3 sidenav">
       <h3>AI Platform </h3>
       <ul class="nav nav-pills nav-stacked">
-        <li class="active"><a href="/">Home</a></li>
-          <li><a href="/inference">Inference</a></li>
+        <li><a href="/">Home</a></li>
+          <li class="active"><a href="/inference">Inference</a></li>
           <li><a href="#section3">Deployed Models</a></li>
       </ul><br>
       <!-- <div class="input-group">
@@ -60,15 +60,17 @@
       <hr>
       <h4>Model and Scheduling Details</h4>
 
-        <form action="/deploy" method="post" enctype=multipart/form-data>
-
-                <label for="model_file">Upload your Model : </label>
+        <form action="/inferenceService" method="post" enctype=multipart/form-data>
+                <label for="model_name">Model Name: </label>
+                <input type="text" name="model_name" class="form-control col-md-4" id="model_name" >
+                <br>
+                <label for="model_file">Upload your Model Test Data: </label>
                 <input type="file" class="form-control-file" id="model_file" name="model_file">
             <br>
-                <label for="config_file">Upload your Config File : </label>
-                <input type="file" class="form-control-file" id="config_file" name="config_file">
+                <label for="config_file">Upload your Action File : </label>
+                <input type="file" class="form-control-file" id="action_file" name="action_file">
             <br>
-            <button type="submit" class="btn btn-primary mb-2">Schedule</button>
+            <button type="submit" class="btn btn-primary mb-2">Check inference</button>
         </form>
 
     </div>
