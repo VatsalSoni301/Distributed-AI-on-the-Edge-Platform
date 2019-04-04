@@ -1,5 +1,4 @@
 from flask import Flask,request, render_template
-from werkzeug import secure_filename
 import os,json
 from threading import Thread
 from time import sleep
@@ -7,12 +6,25 @@ import time
 import datetime
 import requests
 import numpy
+from Logger import Logger
+import logging
 
 UPLOAD_FOLDER = './'
 ALLOWED_EXTENSIONS = set(['txt', 'json', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+###################################################
+logger = Logger('amqp://admin:admin@10.42.0.1//')
+my_logger = logging.getLogger('test_logger')
+my_logger.setLevel(logging.DEBUG)
+
+# rabbitmq handler
+logHandler = Logger('amqp://admin:admin@10.42.0.1//')
+
+# adding rabbitmq handler
+my_logger.addHandler(logHandler)
+################################################
 
 @app.route('/user/<username>')
 def user(username):
@@ -26,7 +38,8 @@ def show_post(post_id):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+	my_logger.debug('RequestManager Service \t Running successfully')
+	return render_template('index.html')
 
 @app.route('/inference')
 def inference():
