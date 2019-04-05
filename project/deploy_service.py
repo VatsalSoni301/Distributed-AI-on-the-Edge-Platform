@@ -4,6 +4,20 @@ from threading import Thread
 from time import sleep
 import time,requests
 import datetime
+from Logger import Logger
+import logging
+
+###################################################
+logger = Logger('amqp://admin:admin@192.168.43.54//')
+my_logger = logging.getLogger('test_logger')
+my_logger.setLevel(logging.DEBUG)
+
+# rabbitmq handler
+logHandler = Logger('amqp://admin:admin@192.168.43.54//')
+
+# adding rabbitmq handler
+my_logger.addHandler(logHandler)
+################################################
 
 app = Flask(__name__)
 
@@ -18,6 +32,7 @@ def caller_function(URL,sched) :
 
 @app.route('/deployService',methods=['POST'])
 def deployModelPhase():
+    my_logger.debug('Deploy Service \t Started deploy')
     print("Deploy")
     # modelName = request.args.get('model')
     listOfDict = {}
@@ -34,16 +49,26 @@ else
 fi
     '''
     # data = request.get_json()
+
+    URL = "http://192.168.43.54:5003/get_service_ip/DeploymentService"
+    response=requests.get(url=URL)
+    loaddata = response.json()
+
+    ip = loaddata['ip']
+    port = loaddata['port']
+    uname = loaddata['username']
+    password = loaddata['password']
+
     data =request.data
     datadict=json.loads(data)
     print(type(datadict))
     print(datadict)
     sched = {}
     i=datadict
-    ip = i['DeployIp']
+    # ip = i['DeployIp']
     fname=i["Type"]
-    uname = i['DeployUserName']
-    password = i['DeployPassword']
+    # uname = i['DeployUserName']
+    # password = i['DeployPassword']
     modelfilename = i['FileName']
     modelName = i['Modelname']
     modelpath = i["ModelPath"]
@@ -54,7 +79,7 @@ fi
     stream_ip = i["InputStream"]
     interval = i["Interval"]
     repeat_period = i["Repeat_Period"]
-    port = port + 1
+    # port = port + 1
 
     print("------------",modelfilename)
     dynamic1 = "unzip " + modelfilename
@@ -106,6 +131,7 @@ fi
 
             
     print("Call Schedule")
+    my_logger.debug('Deploy Service \t Call Schedule')
     url = 'http://127.0.0.1:8897/ScheduleService'
     
     # thread = Thread(target=caller_function,args=(url,sched,))
@@ -116,7 +142,7 @@ fi
     # r = json.dumps(sched)
     # url='http://127.0.0.1:8882/ScheduleService'
     # response = requests.post(url,data=r)
-    
+    my_logger.debug('Deploy Service \t Done Deploy')
     return "From deploy"
         
                     

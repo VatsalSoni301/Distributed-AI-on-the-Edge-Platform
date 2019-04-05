@@ -9,6 +9,7 @@ import requests
 import numpy
 from Logger import Logger
 import logging
+import smtplib, ssl
 
 UPLOAD_FOLDER = './'
 ALLOWED_EXTENSIONS = set(['txt', 'json', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
@@ -16,12 +17,12 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ###################################################
-logger = Logger('amqp://admin:admin@10.42.0.1//')
+logger = Logger('amqp://admin:admin@192.168.43.54//')
 my_logger = logging.getLogger('test_logger')
 my_logger.setLevel(logging.DEBUG)
 
 # rabbitmq handler
-logHandler = Logger('amqp://admin:admin@10.42.0.1//')
+logHandler = Logger('amqp://admin:admin@192.168.43.54//')
 
 # adding rabbitmq handler
 my_logger.addHandler(logHandler)
@@ -33,6 +34,7 @@ def inference():
 
 @app.route('/inferenceService', methods=['GET', 'POST'])
 def inferenceService():
+    my_logger.debug('Inferencing Service \t Started inference')
     model_name = request.form['model_name']
     model_file = request.files['model_file']
     action_file = request.files['action_file']
@@ -60,8 +62,25 @@ def inferenceService():
         result = data
         # result = str(numpy.argmax(data['predictions'][0]))
 
+    print("Mailed")
+    print(result)
 
-    # Threading for notification service
+    # For notification service
+
+    port = 465  # For SSL
+    smtp_server = "smtp.gmail.com"
+    sender_email = "johan.stark95@gmail.com"  # Enter your address
+    receiver_email = "kansagara.darshan97@gmail.com"  # Enter receiver address
+    password = "1friend1"
+    message = """\
+    Subject: Result
+
+    Your predicted output is.""" + str(result)
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, message)
 
     return str(result)
 
@@ -78,6 +97,7 @@ def show_post(post_id):
 
 @app.route('/')
 def index():
+    my_logger.debug('RequestManager Service \t Started RMS')
     return render_template('index.html')
 
 
@@ -93,7 +113,7 @@ def caller_function(sched) :
 
 def deployHandler(jsonfile,folderName):
     sched = {}
-
+    my_logger.debug('DeployHandler Service \t In deployHandler')
     with open(jsonfile) as json_file:
         listOfDict = json.load(json_file)
         print(listOfDict)

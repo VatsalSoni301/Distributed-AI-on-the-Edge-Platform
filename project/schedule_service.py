@@ -8,11 +8,25 @@ from time import sleep
 import time
 import requests
 import datetime
+from Logger import Logger
+import logging
 
 UPLOAD_FOLDER = './'
 ALLOWED_EXTENSIONS = set(['txt', 'json', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+###################################################
+logger = Logger('amqp://admin:admin@192.168.43.54//')
+my_logger = logging.getLogger('test_logger')
+my_logger.setLevel(logging.DEBUG)
+
+# rabbitmq handler
+logHandler = Logger('amqp://admin:admin@192.168.43.54//')
+
+# adding rabbitmq handler
+my_logger.addHandler(logHandler)
+################################################
 
 c = 0
 fg = 0
@@ -20,11 +34,19 @@ fg = 0
 
 def send(filename, modelname, port, ip, uname, passw, cmd, inp_str_ip):
     print("Run Model")
-    # cmd3 = "nohup sshpass -p " + passw + " ssh " + ip + " -l " + uname + " '" + cmd + "'" + " &"
     start_script = "start_"+modelname+".sh"
     cmd3 = "nohup sshpass -p " + passw + " ssh " + ip + " -l " + uname + " bash "+ start_script + " &"
     print(cmd3)
     os.system(cmd3)
+    
+    # if modelname == "my_model":
+    # url = "http://"+ip+":"+str(port)+"/v1/models/"+modelname+":predict"
+    # else:
+    #     url = "http://"+ip+":"+str(port)+"/v1/models/"+modelname+"/versions/1"+":predict"
+
+    # cmd4 = "python process.py " + filename + " " +inp_str_ip + " " + url + " output.txt &"
+
+    # os.system(cmd4)
 
 
 def endFunction(modelname, starttag, endtag, repeat, passw, ip, uname):
@@ -40,6 +62,7 @@ def endFunction(modelname, starttag, endtag, repeat, passw, ip, uname):
 @app.route('/ScheduleService', methods=['GET', 'POST'])
 def ScheduleService():
     print("Schedule")
+    my_logger.debug('Scheduler Service \t Start Scheduler')
     listOfDict = {}
     port = 45098
     global c
@@ -137,6 +160,7 @@ def ScheduleService():
 		    now = now + \
 				datetime.timedelta(minutes=int(data['repeat_period']))
     c = c + 1
+    my_logger.debug('Scheduler Service \t Done Scheduler')
     return "From Schedule"
 
 
