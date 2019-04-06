@@ -17,15 +17,15 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ###################################################
-logger = Logger('amqp://admin:admin@192.168.43.54//')
-my_logger = logging.getLogger('test_logger')
-my_logger.setLevel(logging.DEBUG)
+# logger = Logger('amqp://admin:admin@10.42.0.239//')
+# my_logger = logging.getLogger('test_logger')
+# my_logger.setLevel(logging.DEBUG)
 
-# rabbitmq handler
-logHandler = Logger('amqp://admin:admin@192.168.43.54//')
+# # rabbitmq handler
+# logHandler = Logger('amqp://admin:admin@10.42.0.239//')
 
-# adding rabbitmq handler
-my_logger.addHandler(logHandler)
+# # adding rabbitmq handler
+# my_logger.addHandler(logHandler)
 ################################################
 
 c = 0
@@ -35,7 +35,7 @@ fg = 0
 def send(filename, modelname, port, ip, uname, passw, cmd, inp_str_ip):
     print("Run Model")
     start_script = "start_"+modelname+".sh"
-    cmd3 = "nohup sshpass -p " + passw + " ssh " + ip + " -l " + uname + " bash "+ start_script + " &"
+    cmd3 = "nohup sshpass -p " + passw + " ssh -o StrictHostKeyChecking=no " + ip + " -l " + uname + " bash "+ start_script + " &"
     print(cmd3)
     os.system(cmd3)
     
@@ -52,7 +52,7 @@ def send(filename, modelname, port, ip, uname, passw, cmd, inp_str_ip):
 def endFunction(modelname, starttag, endtag, repeat, passw, ip, uname):
     print("End Model")
     end_script = "stop_"+modelname+".sh"
-    endcmd = "nohup sshpass -p " + passw + " ssh " + ip + " -l " + uname + " bash "+ end_script + " &"
+    endcmd = "nohup sshpass -p " + passw + " ssh -o StrictHostKeyChecking=no " + ip + " -l " + uname + " bash "+ end_script + " &"
     os.system(endcmd)
     if repeat == "NO":
         schedule.clear(starttag)
@@ -62,7 +62,7 @@ def endFunction(modelname, starttag, endtag, repeat, passw, ip, uname):
 @app.route('/ScheduleService', methods=['GET', 'POST'])
 def ScheduleService():
     print("Schedule")
-    my_logger.debug('Scheduler Service \t Start Scheduler')
+    # my_logger.debug('Scheduler Service \t Start Scheduler')
     listOfDict = {}
     port = 45098
     global c
@@ -83,7 +83,7 @@ def ScheduleService():
     starttag = "tag"+str(c)
     c = c + 1
     endtag = "tag"+str(c)
-    print("---------------------@@@@@@@@@@@@@@@@@@@@@")
+    # print("---------------------@@@@@@@@@@@@@@@@@@@@@")
     if data['end'] != "NA" and data['repeat'] == "YES":
         schedule.every().day.at(data['start']).do(send, filename=data['filename'], modelname=data['modelname'], port=data['port'], ip=data['ip'],
 													uname=data['uname'], passw=data['password'], cmd=data['start_command'], inp_str_ip=data['InputStreamIp']).tag(starttag)
@@ -160,7 +160,7 @@ def ScheduleService():
 		    now = now + \
 				datetime.timedelta(minutes=int(data['repeat_period']))
     c = c + 1
-    my_logger.debug('Scheduler Service \t Done Scheduler')
+    # my_logger.debug('Scheduler Service \t Done Scheduler')
     return "From Schedule"
 
 
@@ -176,4 +176,4 @@ def threaded_function():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=8897, debug=True,threaded=True)
+    app.run(host="0.0.0.0",port=8000, debug=True,threaded=True)

@@ -17,15 +17,15 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ###################################################
-logger = Logger('amqp://admin:admin@192.168.43.54//')
-my_logger = logging.getLogger('test_logger')
-my_logger.setLevel(logging.DEBUG)
+# logger = Logger('amqp://admin:admin@192.168.43.54//')
+# my_logger = logging.getLogger('test_logger')
+# my_logger.setLevel(logging.DEBUG)
 
-# rabbitmq handler
-logHandler = Logger('amqp://admin:admin@192.168.43.54//')
+# # rabbitmq handler
+# logHandler = Logger('amqp://admin:admin@192.168.43.54//')
 
-# adding rabbitmq handler
-my_logger.addHandler(logHandler)
+# # adding rabbitmq handler
+# my_logger.addHandler(logHandler)
 ################################################
 
 @app.route('/inference')
@@ -34,7 +34,7 @@ def inference():
 
 @app.route('/inferenceService', methods=['GET', 'POST'])
 def inferenceService():
-    my_logger.debug('Inferencing Service \t Started inference')
+    # my_logger.debug('Inferencing Service \t Started inference')
     model_name = request.form['model_name']
     model_file = request.files['model_file']
     action_file = request.files['action_file']
@@ -97,7 +97,7 @@ def show_post(post_id):
 
 @app.route('/')
 def index():
-    my_logger.debug('RequestManager Service \t Started RMS')
+    # my_logger.debug('RequestManager Service \t Started RMS')
     return render_template('index.html')
 
 
@@ -107,13 +107,13 @@ def allowed_file(filename):
 
 def caller_function(sched) :
     
-    URL='http://127.0.0.1:8890/deployService'
+    URL='http://10.42.0.238:8890/deployService'
     print("Caller function called")
     r=requests.post(url=URL,data=json.dumps(sched))
 
 def deployHandler(jsonfile,folderName):
     sched = {}
-    my_logger.debug('DeployHandler Service \t In deployHandler')
+    # my_logger.debug('DeployHandler Service \t In deployHandler')
     with open(jsonfile) as json_file:
         listOfDict = json.load(json_file)
         print(listOfDict)

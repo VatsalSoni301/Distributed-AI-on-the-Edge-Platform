@@ -1,0 +1,8 @@
+sudo docker build . -f common_dependencies.Dockerfile -t commondocker
+sudo docker build . -f deploy_service.Dockerfile -t deploydocker
+sudo docker build . -f schedule_service.Dockerfile -t scheduledocker
+
+
+sudo docker run -p 8890:8000 -v /home/vatsal/Documents/IIIT/Sem-2/IAS/IAS_Project/project/:/deploy_service deploydocker
+
+sudo docker run -p 8891:8000 -v /home/vatsal/Documents/IIIT/Sem-2/IAS/IAS_Project/project/:/schedule_service scheduledocker

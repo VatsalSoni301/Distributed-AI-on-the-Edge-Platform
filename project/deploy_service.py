@@ -1,4 +1,5 @@
 from flask import Flask,request, render_template
+from werkzeug import secure_filename
 import os,json
 from threading import Thread
 from time import sleep
@@ -8,21 +9,21 @@ from Logger import Logger
 import logging
 
 ###################################################
-logger = Logger('amqp://admin:admin@192.168.43.54//')
-my_logger = logging.getLogger('test_logger')
-my_logger.setLevel(logging.DEBUG)
+# logger = Logger('amqp://admin:admin@10.42.0.239//')
+# my_logger = logging.getLogger('test_logger')
+# my_logger.setLevel(logging.DEBUG)
 
-# rabbitmq handler
-logHandler = Logger('amqp://admin:admin@192.168.43.54//')
+# # rabbitmq handler
+# logHandler = Logger('amqp://admin:admin@10.42.0.239//')
 
-# adding rabbitmq handler
-my_logger.addHandler(logHandler)
+# # adding rabbitmq handler
+# my_logger.addHandler(logHandler)
 ################################################
 
 app = Flask(__name__)
 
 def caller_function(URL,sched) :
-    print("dd")
+    print("Called")
     
     # print("Caller function called")
     # print(type(sched))
@@ -32,7 +33,7 @@ def caller_function(URL,sched) :
 
 @app.route('/deployService',methods=['POST'])
 def deployModelPhase():
-    my_logger.debug('Deploy Service \t Started deploy')
+    # my_logger.debug('Deploy Service \t Started deploy')
     print("Deploy")
     # modelName = request.args.get('model')
     listOfDict = {}
@@ -50,25 +51,30 @@ fi
     '''
     # data = request.get_json()
 
-    URL = "http://192.168.43.54:5003/get_service_ip/DeploymentService"
-    response=requests.get(url=URL)
-    loaddata = response.json()
-
-    ip = loaddata['ip']
-    port = loaddata['port']
-    uname = loaddata['username']
-    password = loaddata['password']
-
     data =request.data
     datadict=json.loads(data)
     print(type(datadict))
     print(datadict)
     sched = {}
     i=datadict
-    # ip = i['DeployIp']
+
+    if i['Gateway'] == "NO":
+        URL = "http://192.168.43.54:5003/get_service_ip/DeploymentService"
+        response=requests.get(url=URL)
+        loaddata = response.json()
+
+        ip = loaddata['ip']
+        port = loaddata['port']
+        uname = loaddata['username']
+        password = loaddata['password']
+    else:
+        ip = i['DeployIp']
+        uname = i['DeployUserName']
+        password = i['DeployPassword']
+        port = i['port']
+
     fname=i["Type"]
-    # uname = i['DeployUserName']
-    # password = i['DeployPassword']
+    
     modelfilename = i['FileName']
     modelName = i['Modelname']
     modelpath = i["ModelPath"]
@@ -79,7 +85,6 @@ fi
     stream_ip = i["InputStream"]
     interval = i["Interval"]
     repeat_period = i["Repeat_Period"]
-    # port = port + 1
 
     print("------------",modelfilename)
     dynamic1 = "unzip " + modelfilename
@@ -111,15 +116,17 @@ fi
     f.write(dynamicX)
     f.close()
 
-    path = folderName + "/"
-    cmd1 = "sshpass -p " + password + " scp " + scriptName + " " + uname + "@" + ip + ":" + scriptName
-    cmd1_1 = "sshpass -p " + password + " scp " + start_s + " " + uname + "@" + ip + ":" + start_s
-    cmd1_2 = "sshpass -p " + password + " scp " + stop_s + " " + uname + "@" + ip + ":" + stop_s
-    cmd2 = "sshpass -p " + password + " scp " + path + modelfilename + " " + uname + "@" + ip + ":" + modelfilename
-    cmd3 = "nohup sshpass -p " + password + " ssh " + ip + " -l " + uname + " bash "+ scriptName + " &"
+    path = folderName
+    cmd1 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + scriptName + " " + uname + "@" + ip + ":" + scriptName
+    cmd1_1 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + start_s + " " + uname + "@" + ip + ":" + start_s
+    cmd1_2 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + stop_s + " " + uname + "@" + ip + ":" + stop_s
+    cmd2 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + path + modelfilename + " " + uname + "@" + ip + ":" + modelfilename
+    cmd3 = "nohup sshpass -p " + password + " ssh -o StrictHostKeyChecking=no " + ip + " -l " + uname + " bash "+ scriptName + " &"
 
     print("Before calling")
 
+    # tempcmd = "sshpass -p dhawal@A1 ssh -o StrictHostKeyChecking=no dhawal@10.42.0.1"
+    # os.system(tempcmd)
     os.system(cmd1)
     os.system(cmd1_1)
     os.system(cmd1_2)
@@ -131,8 +138,16 @@ fi
 
             
     print("Call Schedule")
-    my_logger.debug('Deploy Service \t Call Schedule')
-    url = 'http://127.0.0.1:8897/ScheduleService'
+    # my_logger.debug('Deploy Service \t Call Schedule')
+
+    # URL = "http://192.168.43.54:5003/get_service_ip/DeploymentService"
+    # response=requests.get(url=URL)
+    # sched_data = response.json()
+    # s_ip = sched_data['ip']
+    # s_port = sched_data['port']
+    # url = "http://"+s_ip+":"+s_port+"/ScheduleService"
+
+    url = "http://10.42.0.238:8897/ScheduleService"
     
     # thread = Thread(target=caller_function,args=(url,sched,))
     # thread.start()
@@ -142,12 +157,9 @@ fi
     # r = json.dumps(sched)
     # url='http://127.0.0.1:8882/ScheduleService'
     # response = requests.post(url,data=r)
-    my_logger.debug('Deploy Service \t Done Deploy')
+    # my_logger.debug('Deploy Service \t Done Deploy')
     return "From deploy"
         
-                    
-
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=8890,debug=True,threaded=True)
-
+    app.run(host="0.0.0.0",port=8000,debug=True,threaded=True)
