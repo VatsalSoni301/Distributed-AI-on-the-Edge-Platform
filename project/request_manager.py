@@ -107,6 +107,12 @@ def allowed_file(filename):
 
 def caller_function(sched) :
     
+    # URL = "http://192.168.43.54:5003/get_service_ip/DeploymentService"
+    # response=requests.get(url=URL)
+    # deploy_data = response.json()
+    # d_ip = deploy_data['ip']
+    # d_port = deploy_data['port']
+    # URL = "http://"+d_ip+":"+d_port+"/deployService"
     URL='http://10.42.0.238:8890/deployService'
     print("Caller function called")
     r=requests.post(url=URL,data=json.dumps(sched))

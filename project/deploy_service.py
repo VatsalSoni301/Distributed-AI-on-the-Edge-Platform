@@ -37,7 +37,6 @@ def deployModelPhase():
     print("Deploy")
     # modelName = request.args.get('model')
     listOfDict = {}
-    port = 45098
     # jsonfile="config.json"
     folderName="./models/"
     commands = '''
@@ -91,7 +90,7 @@ fi
     dynamic2 = "echo " + password + " | sudo -S apt-get update"
     dynamic3 = "echo " + password +" | sudo -S docker pull tensorflow/serving"
     dynamic4 = "sudo docker stop $(echo " + password + " | sudo -S docker ps -aq)"
-    dynamic5 = "echo " + password + " | sudo -S docker run --name=" + "\"" + modelName + "\"" + " -p 8500:8500 -p 8501:8501 --mount type=bind,source=/home/"+uname+"/"+modelpath+",target=/models/"+modelName+" -e MODEL_NAME="+modelName+" -t tensorflow/serving"
+    dynamic5 = "echo " + password + " | sudo -S docker run --name=" + "\"" + modelName + "\"" + " -p " + str(port) + ":8501 --mount type=bind,source=/home/"+uname+"/"+modelpath+",target=/models/"+modelName+" -e MODEL_NAME="+modelName+" -t tensorflow/serving"
     # dynamic6 = "nohup sshpass -p " + password + " ssh " +  ip +" -l " + uname + " 'docker kill "+modelName + "'" + " &"
     # dynamic7 = "nohup sshpass -p " + password + " ssh " +  ip +" -l " + uname + " 'docker rm "+modelName + "'" + " &"
     dynamic6 = "echo " + password + " | " +"sudo -S docker kill " + modelName
@@ -147,7 +146,7 @@ fi
     # s_port = sched_data['port']
     # url = "http://"+s_ip+":"+s_port+"/ScheduleService"
 
-    url = "http://10.42.0.238:8897/ScheduleService"
+    url = "http://10.42.0.238:8891/ScheduleService"
     
     # thread = Thread(target=caller_function,args=(url,sched,))
     # thread.start()

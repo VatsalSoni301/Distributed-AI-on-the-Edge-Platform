@@ -11,12 +11,30 @@
                     "EndTime":"NA",
                     "Repeat":"NO",
                     "Count":1,
-                    "Interval":1,
+                    "Interval":2,
                     "Repeat_Period":3,
                     "Gateway":"YES",
                     "DeployUserName":"dhawal",
                     "DeployPassword":"dhawal@A1",
-                    "port":8501,
+                    "port":6006,
+                    "DeployIp":"10.42.0.1"
+                },
+                {
+                    "Modelname":"my_model1",
+                    "FileName":"iris.zip",
+                    "Type":"iris",
+                    "InputStream" : "192.168.43.54",
+                    "ModelPath":"iris/",
+                    "StartTime":"NA",
+                    "EndTime":"NA",
+                    "Repeat":"NO",
+                    "Count":1,
+                    "Interval":2,
+                    "Repeat_Period":3,
+                    "Gateway":"YES",
+                    "DeployUserName":"dhawal",
+                    "DeployPassword":"dhawal@A1",
+                    "port":6009,
                     "DeployIp":"10.42.0.1"
                 }
 		
