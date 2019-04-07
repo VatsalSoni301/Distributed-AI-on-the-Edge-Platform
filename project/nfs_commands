@@ -1,0 +1,39 @@
+Steps
+
+Server side
+
+In home
+
+sudo apt update
+sudo apt install nfs-kernel-server
+sudo mkdir /var/nfs/general -p
+ls -la /var/nfs/general
+sudo chown nobody:nogroup /var/nfs/general
+sudo vi /etc/exports (write following line: /var/nfs/general    10.42.0.*(rw,sync,no_subtree_check) )
+/home       10.42.0.*(rw,sync,no_root_squash,no_subtree_check)
+sudo systemctl restart nfs-kernel-server
+sudo ufw status
+sudo ufw allow from 10.42.0.238(shared) to any port nfs
+sudo ufw status
+
+
+Client side
+
+
+sudo apt update
+sudo apt install nfs-common
+
+sudo mkdir -p /nfs/general
+sudo mkdir -p /nfs/home
+sudo mount 10.42.0.1:6009/var/nfs/general /nfs/general
+sudo mount 10.42.0.1:/home /nfs/home
+df -h
+
+
+#####UFW####
+
+sudo ufw enable
+sudo ufw status
+sudo ufw allow port/service
+sudo ufw disable
+

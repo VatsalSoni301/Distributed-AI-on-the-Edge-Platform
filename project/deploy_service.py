@@ -24,11 +24,10 @@ app = Flask(__name__)
 
 def caller_function(URL,sched) :
     print("Called")
-    
-    # print("Caller function called")
-    # print(type(sched))
+    # Load Balancer
     print("Caller function called")
-    r=requests.post(url=URL,data=json.dumps(sched))
+    r=requests.post(url="http://10.42.0.238:49000/ScheduleService",data=json.dumps(sched))
+    print("############ Response",r)
 
 
 @app.route('/deployService',methods=['POST'])
@@ -38,7 +37,6 @@ def deployModelPhase():
     # modelName = request.args.get('model')
     listOfDict = {}
     # jsonfile="config.json"
-    folderName="./models/"
     commands = '''
 if [ -x "$(command -v docker)" ]; then
     echo "Update docker"
@@ -86,53 +84,54 @@ fi
     repeat_period = i["Repeat_Period"]
 
     print("------------",modelfilename)
-    dynamic1 = "unzip " + modelfilename
+    # dynamic1 = "unzip " + modelfilename
     dynamic2 = "echo " + password + " | sudo -S apt-get update"
     dynamic3 = "echo " + password +" | sudo -S docker pull tensorflow/serving"
     dynamic4 = "sudo docker stop $(echo " + password + " | sudo -S docker ps -aq)"
-    dynamic5 = "echo " + password + " | sudo -S docker run --name=" + "\"" + modelName + "\"" + " -p " + str(port) + ":8501 --mount type=bind,source=/home/"+uname+"/"+modelpath+",target=/models/"+modelName+" -e MODEL_NAME="+modelName+" -t tensorflow/serving"
+    dynamic5 = "echo " + password + " | sudo -S docker run --name=" + "\"" + modelName + "\"" + " -p " + str(port) + ":8501 --mount type=bind,source=/home/" + uname + "/nfs/"+modelpath+",target=/models/"+modelName+" -e MODEL_NAME="+modelName+" -t tensorflow/serving"
     # dynamic6 = "nohup sshpass -p " + password + " ssh " +  ip +" -l " + uname + " 'docker kill "+modelName + "'" + " &"
     # dynamic7 = "nohup sshpass -p " + password + " ssh " +  ip +" -l " + uname + " 'docker rm "+modelName + "'" + " &"
     dynamic6 = "echo " + password + " | " +"sudo -S docker kill " + modelName
     dynamic7 = "echo " + password + " | " +"sudo -S docker rm " + modelName
 
-    commands = dynamic1 + "\n" + commands + "\n" + dynamic3 +"\n" + dynamic4 + "\n"
+    # commands = dynamic1 + "\n" + commands + "\n" + dynamic3 +"\n" + dynamic4 + "\n"
+    commands = commands + "\n" + dynamic3 +"\n" + dynamic4 + "\n"
 
-    scriptName = "script_" + modelName + ".sh"
+    remotescript = "script_" + modelName + ".sh"
+    scriptName = "./nfs/script_" + modelName + ".sh"
     f = open(scriptName,"w+")
     f.write(commands)
     f.close()
 
-    start_s = "start_"+modelName+".sh"
+    start_s = "./nfs/start_" + modelName + ".sh"
     f = open(start_s,"w+")
     f.write(dynamic5)
     f.close()
 
     dynamicX = dynamic6 + "\n" + dynamic7
-    stop_s = "stop_"+modelName+".sh"
+    stop_s = "./nfs/stop_" + modelName + ".sh"
     f = open(stop_s,"w+")
     # f.write()
     f.write(dynamicX)
     f.close()
 
-    path = folderName
-    cmd1 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + scriptName + " " + uname + "@" + ip + ":" + scriptName
-    cmd1_1 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + start_s + " " + uname + "@" + ip + ":" + start_s
-    cmd1_2 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + stop_s + " " + uname + "@" + ip + ":" + stop_s
-    cmd2 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + path + modelfilename + " " + uname + "@" + ip + ":" + modelfilename
-    cmd3 = "nohup sshpass -p " + password + " ssh -o StrictHostKeyChecking=no " + ip + " -l " + uname + " bash "+ scriptName + " &"
+    # cmd1 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + scriptName + " " + uname + "@" + ip + ":" + scriptName
+    # cmd1_1 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + start_s + " " + uname + "@" + ip + ":" + start_s
+    # cmd1_2 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + stop_s + " " + uname + "@" + ip + ":" + stop_s
+    # cmd2 = "sshpass -p " + password + " scp -o StrictHostKeyChecking=no " + path + modelfilename + " " + uname + "@" + ip + ":" + modelfilename
+    cmd3 = "nohup sshpass -p " + password + " ssh -o StrictHostKeyChecking=no " + ip + " -l " + uname + " bash "+ "/home/" + uname + "/nfs/"+remotescript + " &"
 
     print("Before calling")
 
     # tempcmd = "sshpass -p dhawal@A1 ssh -o StrictHostKeyChecking=no dhawal@10.42.0.1"
     # os.system(tempcmd)
-    os.system(cmd1)
-    os.system(cmd1_1)
-    os.system(cmd1_2)
-    os.system(cmd2)
+    # os.system(cmd1)
+    # os.system(cmd1_1)
+    # os.system(cmd1_2)
+    # os.system(cmd2)
     os.system(cmd3)
 
-    sched = {'InputStreamIp': stream_ip,'filename':fname,'modelname':modelName,'uname':uname,'password':password,'ip':ip,'port':8501,'start_command':dynamic5,'end_command':dynamic6,
+    sched = {'InputStreamIp': stream_ip,'filename':fname,'modelname':modelName,'uname':uname,'password':password,'ip':ip,'port':port,'start_command':dynamic5,'end_command':dynamic6,
                                                 'start':start,'end':end,'repeat':repeat,'count':count,'interval':interval,'repeat_period':repeat_period}
 
             
@@ -146,7 +145,7 @@ fi
     # s_port = sched_data['port']
     # url = "http://"+s_ip+":"+s_port+"/ScheduleService"
 
-    url = "http://10.42.0.238:8891/ScheduleService"
+    url = "http://10.42.0.238:49000/ScheduleService"
     
     # thread = Thread(target=caller_function,args=(url,sched,))
     # thread.start()
@@ -161,4 +160,4 @@ fi
         
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=8000,debug=True,threaded=True)
+    app.run(host="0.0.0.0",port=8005,debug=True,threaded=True)

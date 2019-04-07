@@ -3,10 +3,18 @@ sudo docker build . -f deploy_service.Dockerfile -t deploydocker
 sudo docker build . -f schedule_service.Dockerfile -t scheduledocker
 
 
-sudo docker run -p 8890:8000 -v /home/vatsal/Documents/IIIT/Sem-2/IAS/IAS_Project/project/:/deploy_service deploydocker
+sudo docker run -t -p 49005:8005 -v /home/vatsal/nfs/:/deploy_service/nfs/ -v /etc/localtime:/etc/localtime:ro deploydocker
 
-sudo docker run -p 8891:8000 -v /home/vatsal/Documents/IIIT/Sem-2/IAS/IAS_Project/project/:/schedule_service scheduledocker
+sudo docker run -t -p 49000:8009 -v /home/vatsal/nfs/:/schedule_service/nfs/ -v /etc/localtime:/etc/localtime:ro scheduledocker
 
 python3 server_stats.py
 
 python3 request_manager.py
+
+sudo apt update
+sudo apt install nfs-common
+sudo mkdir -p /nfs/general
+sudo mount 10.42.0.238:/nfs/general /nfs/general
+
+sudo ps -ef | grep "keyword to search"
+sudo kill pid

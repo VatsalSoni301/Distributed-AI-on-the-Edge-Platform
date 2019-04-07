@@ -11,10 +11,7 @@ import datetime
 from Logger import Logger
 import logging
 
-UPLOAD_FOLDER = './'
-ALLOWED_EXTENSIONS = set(['txt', 'json', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ###################################################
 # logger = Logger('amqp://admin:admin@10.42.0.239//')
@@ -34,7 +31,7 @@ fg = 0
 
 def send(filename, modelname, port, ip, uname, passw, cmd, inp_str_ip):
     print("Run Model")
-    start_script = "start_"+modelname+".sh"
+    start_script = "/home/" + uname + "/nfs/start_"+modelname+".sh"
     cmd3 = "nohup sshpass -p " + passw + " ssh -o StrictHostKeyChecking=no " + ip + " -l " + uname + " bash "+ start_script + " &"
     print(cmd3)
     os.system(cmd3)
@@ -51,7 +48,7 @@ def send(filename, modelname, port, ip, uname, passw, cmd, inp_str_ip):
 
 def endFunction(modelname, starttag, endtag, repeat, passw, ip, uname):
     print("End Model")
-    end_script = "stop_"+modelname+".sh"
+    end_script = "/home/" + uname + "/nfs/stop_"+modelname+".sh"
     endcmd = "nohup sshpass -p " + passw + " ssh -o StrictHostKeyChecking=no " + ip + " -l " + uname + " bash "+ end_script + " &"
     os.system(endcmd)
     if repeat == "NO":
@@ -176,4 +173,4 @@ def threaded_function():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=8000, debug=True,threaded=True)
+    app.run(host="0.0.0.0",port=8009, debug=True,threaded=True)

@@ -11,7 +11,7 @@ from Logger import Logger
 import logging
 import smtplib, ssl
 
-UPLOAD_FOLDER = './'
+UPLOAD_FOLDER = '/home/vatsal/nfs/'
 ALLOWED_EXTENSIONS = set(['txt', 'json', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -113,29 +113,33 @@ def caller_function(sched) :
     # d_ip = deploy_data['ip']
     # d_port = deploy_data['port']
     # URL = "http://"+d_ip+":"+d_port+"/deployService"
-    URL='http://10.42.0.238:8890/deployService'
+    URL='http://10.42.0.238:49005/deployService'
     print("Caller function called")
     r=requests.post(url=URL,data=json.dumps(sched))
 
 def deployHandler(jsonfile,folderName):
     sched = {}
     # my_logger.debug('DeployHandler Service \t In deployHandler')
+    jsonfile = UPLOAD_FOLDER + jsonfile
     with open(jsonfile) as json_file:
         listOfDict = json.load(json_file)
         print(listOfDict)
         print("list ",type(listOfDict))
         # mountpoint="abc"
-        cmd = "unzip " + folderName
+        cmd = "unzip " + UPLOAD_FOLDER + folderName + " -d " + UPLOAD_FOLDER
         os.system(cmd)
         # folderName = folderName[0:6]
         for i in listOfDict['ModelList']:
-            print("single dict",i)
-            print(type(i))
+        	cmd = "unzip " + UPLOAD_FOLDER +"models/"+i['FileName'] + " -d " + UPLOAD_FOLDER
+        	os.system(cmd)
+        	thread = Thread(target=caller_function,args=(i,))
+        	thread.start()
+            # print("single dict",i)
+            # print(type(i))
             # r = json.dumps(i)
             # print("rrrrrrrrrrrrrrrrr",r)
             # print("type r",type(r))
-            thread = Thread(target=caller_function,args=(i,))
-            thread.start()
+
             #Fetch the model detail from config file and stor in db
             
 
