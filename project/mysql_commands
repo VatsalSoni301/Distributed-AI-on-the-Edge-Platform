@@ -1,5 +1,0 @@
-Login to MySQL
-	mysql -u root -p     (password - root)
-
-Grant permission
-	GRANT ALL ON ias.* TO root@10.42.0.238 IDENTIFIED BY 'root';
