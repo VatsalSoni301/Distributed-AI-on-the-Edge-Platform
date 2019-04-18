@@ -52,15 +52,15 @@ def register(ip, port, serviceName, sdURL):
 
 
 ###################################################
-logger = Logger("amqp://admin:admin@"+rabbitIp+"//")
-my_logger = logging.getLogger('test_logger')
-my_logger.setLevel(logging.DEBUG)
+# logger = Logger("amqp://admin:admin@"+rabbitIp+"//")
+# my_logger = logging.getLogger('test_logger')
+# my_logger.setLevel(logging.DEBUG)
 
-# rabbitmq handler
-logHandler = Logger("amqp://admin:admin@"+rabbitIp+"//")
+# # rabbitmq handler
+# logHandler = Logger("amqp://admin:admin@"+rabbitIp+"//")
 
-# adding rabbitmq handler
-my_logger.addHandler(logHandler)
+# # adding rabbitmq handler
+# my_logger.addHandler(logHandler)
 ################################################
 
 c = 0
@@ -101,7 +101,12 @@ def endFunction(modelname,modelId,starttag, endtag, repeat, passw, ip, uname):
 		ip + " -l " + uname + " bash " + end_script + " &"
 	os.system(endcmd)
 	query="update model set status=\"NO\" where model_name='"+modelname+"'"
-	# query = "select model_id from model where model_name='"+modelName"+'"
+	r = requests.post(url=URLd, data=query)
+	query = "select model_id from model where model_name='"+modelName+"'"
+	r = requests.post(url=URLd, data=query)
+	data = r.json()
+	mid = data[0][0]
+	query="delete from schedule where model_id="+str(mid)
 	r = requests.post(url=URLd, data=query)
 	if repeat == "NO":
 		schedule.clear(starttag)
@@ -114,7 +119,7 @@ def health():
 @app.route('/ScheduleService', methods=['GET', 'POST'])
 def ScheduleService():
 	print("Schedule")
-	my_logger.debug('Scheduler Service \t Start Scheduler')
+	# my_logger.debug('Scheduler Service \t Start Scheduler')
 	listOfDict = {}
 	port = 45098
 	global c
@@ -283,7 +288,7 @@ def ScheduleService():
 			now = now + \
 				datetime.timedelta(minutes=int(repeat_period))
 	c = c + 1
-	my_logger.debug('Scheduler Service \t Done Scheduler')
+	# my_logger.debug('Scheduler Service \t Done Scheduler')
 	return "From Schedule"
 
 

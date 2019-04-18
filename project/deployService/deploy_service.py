@@ -15,15 +15,15 @@ sdURL = sys.argv[1]
 rabbitip = sys.argv[2]
 
 ###################################################
-logger = Logger("amqp://admin:admin@"+rabbitip+"//")
-my_logger = logging.getLogger('test_logger')
-my_logger.setLevel(logging.DEBUG)
+# logger = Logger("amqp://admin:admin@"+rabbitip+"//")
+# my_logger = logging.getLogger('test_logger')
+# my_logger.setLevel(logging.DEBUG)
 
-# rabbitmq handler
-logHandler = Logger("amqp://admin:admin@"+rabbitip+"//")
+# # rabbitmq handler
+# logHandler = Logger("amqp://admin:admin@"+rabbitip+"//")
 
-# adding rabbitmq handler
-my_logger.addHandler(logHandler)
+# # adding rabbitmq handler
+# my_logger.addHandler(logHandler)
 ################################################
 
 app = Flask(__name__)
@@ -86,7 +86,7 @@ def deployModelPhase():
     ####################################################3
 
 
-    my_logger.debug('Deploy Service \t Started deploy')
+    # my_logger.debug('Deploy Service \t Started deploy')
     print("Deploy")
     # modelName = request.args.get('model')
     listOfDict = {}
@@ -238,7 +238,7 @@ fi
 
             
     # print("Call Schedule")
-    my_logger.debug('Deploy Service \t Call Schedule')
+    # my_logger.debug('Deploy Service \t Call Schedule')
 
     # # URL = "http://192.168.43.54:5003/get_service_ip/DeploymentService"
     # # response=requests.get(url=URL)
@@ -257,7 +257,7 @@ fi
     # r = json.dumps(sched)
     # url='http://127.0.0.1:8882/ScheduleService'
     # response = requests.post(url,data=r)
-    my_logger.debug('Deploy Service \t Done Deploy')
+    # my_logger.debug('Deploy Service \t Done Deploy')
     return "From deploy"
         
 register(ip,port,serviceName,sdURL)

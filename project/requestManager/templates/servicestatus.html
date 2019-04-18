@@ -79,6 +79,7 @@
           <li><a href="/model_status">Model Status</a></li>
           <li class="active"><a href="/Service_status">Service Status</a></li>
           <li><a href="/platform">Start Platform</a></li>
+          <li><a href="/logout">Logout</a></li>
       </ul><br>
       <!-- <div class="input-group">
         <input type="text" class="form-control" placeholder="Search Blog..">
@@ -91,7 +92,7 @@
     </div>
       <div class="container" id="cont">
     <h4>Service Details and Start Stop </h4>        
-    <form action="/start_stop_service" method="post" name="form1">
+    <form action="/start_stop_service" method="post" name="form1" enctype="multipart/form-data">
     <table class="table">
       <thead>
         <tr>
@@ -99,6 +100,8 @@
           <th>Service Status</th>
           <th>Start Service</th>
           <th>Stop Service</th>
+          <th>Config</th>
+          <th>Display</th>
         </tr>
       </thead>
       <tbody>
@@ -108,7 +111,7 @@
             {{i[1]}}
           </td>
           <td>
-            {% if "http://" in path[i[1]] %}
+            {% if i[1] in path.keys() %}
             YES
             {% else %}
             NO
@@ -125,20 +128,22 @@
              <button type="button" class="btn btn-primary mb-2" name="stop_{{i[1]}}" onclick="fun(this)">Stop
              </button>
           </td>
-          {% if "http://" in path[i[1]] %}
+         
           <td>
-             <!-- <button type="button" class="btn btn-primary mb-2" name="disp_{{i[1]}}" >Display</button> -->
-             <a href="{{path[i[1]]}}" target="blank" class="btn btn-primary mb-2">Display</a>
+            <input type="file" class="form-control-file" id="config_{{i[1]}}" name="{{i[1]}}">
           </td>
+          {% if i[1] in path.keys() %}
+              <td>
+             <a href="http://{{path[i[1]]}}" target="blank" class="btn btn-primary mb-2">Display</a>
+          </td> 
           {% endif %}
-
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </form>
   </div>
-
+              
    <!--  <div class="col-sm-9">
       <h4>Model and Scheduling Details</h4>
       

@@ -22,15 +22,15 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 sdURL = sys.argv[1]
 rabbitIp = sys.argv[2]
 ###################################################
-logger = Logger("amqp://admin:admin@"+rabbitIp+"//")
-my_logger = logging.getLogger('test_logger')
-my_logger.setLevel(logging.DEBUG)
+# logger = Logger("amqp://admin:admin@"+rabbitIp+"//")
+# my_logger = logging.getLogger('test_logger')
+# my_logger.setLevel(logging.DEBUG)
 
-# rabbitmq handler
-logHandler = Logger("amqp://admin:admin@"+rabbitIp+"//")
+# # rabbitmq handler
+# logHandler = Logger("amqp://admin:admin@"+rabbitIp+"//")
 
-# adding rabbitmq handler
-my_logger.addHandler(logHandler)
+# # adding rabbitmq handler
+# my_logger.addHandler(logHandler)
 ################################################
 
 response=requests.get(url=sdURL+"/get_service_ip/dbService")
@@ -72,7 +72,7 @@ def webservice():
 
 @app.route('/')
 def index():
-    my_logger.debug('RequestManager Service \t Started RMS')
+    # my_logger.debug('RequestManager Service \t Started RMS')
     return render_template('index.html')
 
 
@@ -440,17 +440,23 @@ def signup_1():
 
 @app.route('/model_status')
 def model_status():
-	query = "select * from model"
-	r=requests.post(url=URLd,data=query)
-	data = r.json()
-	print(data)
-	return render_template('modelstatus.html',data=data)
+    if 'uid' not in session:
+        return "Please Login"
+    uid = session['uid']
+    query = "select * from model where user_id="+str(uid)
+    r=requests.post(url=URLd,data=query)
+    data = r.json()
+    # print(data)
+    return render_template('modelstatus.html',data=data)
 
 path = {}
 
 @app.route('/Service_status')
 def Service_status():
     global path
+    path = {}
+    if 'uid' not in session:
+        return "Please Login"
     uid = session['uid']
     query = "select * from services where user_id="+str(uid)
     r = requests.post(url=URLd,data=query)
@@ -508,6 +514,23 @@ def start_stop_service():
     print(type_)
 
     if type_ == "start":
+        model_file = request.files[sname]
+        filename = secure_filename(model_file.filename)
+        model_file.save(os.path.join(UPLOAD_FOLDER, filename))
+        path = UPLOAD_FOLDER + filename
+        with open(path, 'r') as f:
+            xmlString = f.read()
+             
+            jsonString = json.dumps(xmltodict.parse(xmlString))
+            actualJson = json.loads(jsonString)
+
+        listservices = actualJson['main']['services']['service']
+        print(listservices)
+
+        query = "update services set mininstance="+str(listservices['minInstances'])+",maxinstance="+str(listservices['maxInstances'])+",highmark="+str(listservices['highMark'])+",lowmark="+str(listservices['lowMark'])+",minresponsetime='"+listservices['minResponseTime']+"'"+" where service_name='"+sname+"'"
+        print(query)
+        r=requests.post(url=URLd,data=query)
+
         query = "select service_id,type,mininstance from services where service_name='"+sname+"'"
         r = requests.post(url=URLd, data=query)
         data = r.json()
@@ -540,13 +563,14 @@ def start_stop_service():
         try:
           data = r.json()
           model_id = data[0][0]
-          query = "select status from model where model_id="+str(model_id)
-          r = requests.post(url=URLd, data=query)
-          data = r.json()
-          status = data[0][0]
+          if model_id!=None:
+              query = "select status from model where model_id="+str(model_id)
+              r = requests.post(url=URLd, data=query)
+              data = r.json()
+              status = data[0][0]
 
-          if status != "YES":
-              return "Dependent model is not running"
+              if status != "YES":
+                  return "Dependent model is not running"
         except:
           pass
 
@@ -578,23 +602,23 @@ def start_stop_service():
         r=requests.get(url=URL)
         data = r.json()
         instances = []
+        print(data)
+        data = data['services']
         for i in data:
             if i['serviceName'] == sname:
-                instances = i['instance']
+                instances = i['instances']
                 break
-
+        print(instances)
         for i in instances:
             deploy_soc = i
             ip_port = deploy_soc.split(":")
-            ip = deploy_soc[0]
-            port = deploy_soc[1]
-            URL = "http://"+deploy_soc+"/stop_service/"+sname
-            r=requests.get(url=URL)
+            ip = ip_port[0]
+            port = ip_port[1]
             dt = {'IP':ip,'PORT':port,'serviceName':sname}
             r = requests.post(url=sdURL+"/unregister_service", json=dt)
-        del path[sname]
+            URL = "http://"+ip+":"+str(8899)+"/stop_service/"+sname
+            r=requests.get(url=URL)
 
-    	
     return redirect(url_for('.Service_status'))
 
 @app.route('/platform')
@@ -687,6 +711,11 @@ def platform_db_initialization():
                 r=requests.post(url=URLd,data=query)  
     return render_template('platform.html')    
 
+
+@app.route('/logout')
+def logout():
+    session.pop('uid', None)
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0",port=9001,debug=False,threaded=True)
