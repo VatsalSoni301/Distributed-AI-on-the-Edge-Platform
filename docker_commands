@@ -34,7 +34,7 @@ sudo docker ps
 
 sudo docker login (login to dockerHub for downloading images)
 
-sudo docker pull imageName
+sudo docker pull imageName (Pull docker image from docker-hub)
 
 sudo docker start containerId
 
@@ -45,3 +45,5 @@ sudo docker stop $(sudo docker ps -aq) (Stop all docker container)
 sudo docker rm $(sudo docker ps -aq) (remove all docker containers)
 
 sudo docker rmi $(sudo docker ps -aq) (remove all docker images)
+
+sudo docker-compose up -d (To run multiple docker containers with inter dependecy)
